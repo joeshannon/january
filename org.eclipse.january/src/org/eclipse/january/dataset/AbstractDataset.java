@@ -335,7 +335,7 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 
 	@Override
 	public IndexIterator getSliceIterator(final int[] start, final int[] stop, final int[] step) {
-		return getSliceIterator(new SliceND(shape, start, stop, step));
+		return internalGetSliceIterator(new SliceND(shape, start, stop, step));
 	}
 
 	/**
@@ -343,6 +343,15 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 	 * @return an slice iterator that operates like an IndexIterator
 	 */
 	public IndexIterator getSliceIterator(SliceND slice) {
+		checkSliceND(slice);
+		return internalGetSliceIterator(slice);
+	}
+
+	/**
+	 * @param slice
+	 * @return an slice iterator that operates like an IndexIterator
+	 */
+	protected IndexIterator internalGetSliceIterator(SliceND slice) {
 		if (ShapeUtils.calcLongSize(slice.getShape()) == 0) {
 			return new NullIterator(shape, slice.getShape());
 		}
@@ -773,7 +782,7 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 
 	@Override
 	public Dataset getSliceView(final int[] start, final int[] stop, final int[] step) {
-		return getSliceView(new SliceND(shape, start, stop, step));
+		return internalGetSliceView(new SliceND(shape, start, stop, step));
 	}
 
 	@Override
@@ -782,7 +791,7 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 			return getView(true);
 		}
 
-		return getSliceView(new SliceND(shape, slice));
+		return internalGetSliceView(new SliceND(shape, slice));
 	}
 
 	/**
@@ -792,6 +801,11 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 	 */
 	@Override
 	public Dataset getSliceView(SliceND slice) {
+		checkSliceND(slice);
+		return internalGetSliceView(slice);
+	}
+
+	private Dataset internalGetSliceView(SliceND slice) {
 		if (slice.isAll()) {
 			return getView(true);
 		}
@@ -1367,12 +1381,12 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 
 	@Override
 	public Dataset getSlice(final int[] start, final int[] stop, final int[] step) {
-		return getSlice(new SliceND(shape, start, stop, step));
+		return internalGetSlice(new SliceND(shape, start, stop, step));
 	}
 
 	@Override
 	public Dataset getSlice(Slice... slice) {
-		return getSlice(new SliceND(shape, slice));
+		return internalGetSlice(new SliceND(shape, slice));
 	}
 
 	@Override
@@ -1397,7 +1411,12 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 	 */
 	@Override
 	public Dataset getSlice(final SliceND slice) {
-		SliceIterator it = (SliceIterator) getSliceIterator(slice);
+		checkSliceND(slice);
+		return internalGetSlice(slice);
+	}
+
+	private Dataset internalGetSlice(final SliceND slice) {
+		SliceIterator it = (SliceIterator) internalGetSliceIterator(slice);
 		AbstractDataset s = getSlice(it);
 		s.metadata = copyMetadata();
 		s.setDirty();
@@ -1415,6 +1434,11 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 
 	@Override
 	public Dataset setSlice(final Object obj, final SliceND slice) {
+		checkSliceND(slice);
+		return internalSetSlice(obj, slice);
+	}
+
+	private Dataset internalSetSlice(final Object obj, final SliceND slice) {
 		Dataset ds;
 		if (obj instanceof Dataset) {
 			ds = (Dataset) obj;
@@ -1433,7 +1457,7 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 
 	@Override
 	public Dataset setSlice(final Object obj, final int[] start, final int[] stop, final int[] step) {
-		return setSlice(obj, new SliceND(shape, start, stop, step));
+		return internalSetSlice(obj, new SliceND(shape, start, stop, step));
 	}
 
 	/**
@@ -1447,9 +1471,9 @@ public abstract class AbstractDataset extends LazyDatasetBase implements Dataset
 	@Override
 	public Dataset setSlice(Object obj, Slice... slice) {
 		if (slice == null || slice.length == 0) {
-			return setSlice(obj, new SliceND(shape));
+			return internalSetSlice(obj, new SliceND(shape));
 		}
-		return setSlice(obj, new SliceND(shape, slice));
+		return internalSetSlice(obj, new SliceND(shape, slice));
 	}
 
 	@Override
